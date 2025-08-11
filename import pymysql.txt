@@ -1,0 +1,35 @@
+import pymysql
+
+def select_records():
+    connection = None
+    cursor = None
+
+    try:
+        connection = pymysql.connect(
+            host='localhost',
+            database='ifet',
+            user='root',
+            password='pooja'
+        )
+
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM emp23")
+        rows = cursor.fetchall()
+
+        if not rows:
+            print("No records found.")
+        else:
+            for (id, name, salary) in rows:
+                print(f"Id is: {id}")
+                print(f"Name is: {name}")
+                print(f"Salary is: {salary}")
+
+    except Exception as error:
+        print(f"Error: {error}")
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+select_records()

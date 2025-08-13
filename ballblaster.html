@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>stoneshotgame</title>
+<style>
+  :root{
+    --bg: #ffd800; /* yellow background */
+    --panel: #f6f6f6;
+    --brick: #ff8a00;
+    --paddle: #2b3db8;
+    --ball: #ff2b8a;
+    --btn: #00b0ff;
+  }
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    background:var(--bg);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app {
+    min-height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:18px;
+    padding:18px 12px 36px;
+    box-sizing:border-box;
+  }
+
+  header {
+    width:100%;
+    max-width:420px;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  header .title{
+    font-weight:700;
+    font-size:20px;
+  }
+
+  .score {
+    text-align:center;
+    font-size:20px;
+    color:#111;
+    margin-bottom:6px;
+  }
+
+  .board-wrap{
+    width:100%;
+    max-width:420px;
+    background:var(--panel);
+    border-radius:18px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+    padding:18px;
+    box-sizing:border-box;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  canvas{
+    width:100%;
+    height:auto;
+    display:block;
+    border-radius:12px;
+    background:transparent;
+    touch-action: none;
+  }
+
+  .controls {
+    width:100%;
+    max-width:420px;
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    margin-top:14px;
+  }
+
+  .btn {
+    background:var(--btn);
+    color:#fff;
+    border:none;
+    padding:12px 28px;
+    border-radius:12px;
+    font-size:18px;
+    box-shadow: 0 6px 10px rgba(0,0,0,0.12);
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+  }
+
+  .smallNote{
+    margin-top:6px;
+    color:#111;
+    opacity:0.8;
+    font-size:13px;
+    text-align:center;
+  }
+
+  /* Small landscape tweaks so the canvas isn't too tall on narrow screens */
+  @media (max-width:420px) and (orientation:portrait){
+    .board-wrap{ padding:12px; }
+    .btn{ padding:10px 22px; font-size:16px; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">stoneshotgame</div>
+      <div style="width:40px; height:28px;"></div>
+    </header>
+
+    <div class="score" id="scoreDisplay">Score: 0</div>
+
+    <div class="board-wrap">
+      <canvas id="gameCanvas" width="360" height="520" aria-label="stone shot game"></canvas>
+    </div>
+
+    <div class="controls" role="group" aria-label="game controls">
+      <button class="btn" id="leftBtn">Left</button>
+      <button class="btn" id="rightBtn">Right</button>
+    </div>
+
+    <div class="smallNote">Use ← → keys or touch the buttons to move. Tap canvas to launch.</div>
+  </div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Logical size (kept constant) - canvas element will scale with CSS
+  const W = canvas.width = 360;
+  const H = canvas.height = 520;
+
+  const scoreEl = document.getElementById('scoreDisplay');
+  const leftBtn = document.getElementById('leftBtn');
+  const rightBtn = document.getElementById('rightBtn');
+
+  // Game state
+  let paddle = {
+    w: 80,
+    h: 10,
+    x: (W - 80)/2,
+    y: H - 50,
+    speed: 5,
+  };
+
+  let ball = {
+    r: 7,
+    x: W/2,
+    y: paddle.y - 10,
+    vx: 0,
+    vy: 0,
+    speed: 4,
+    stuck: true
+  };
+
+  // Bricks
+  const brickCols = 7;
+  const brickRows = 5;
+  const brickW = Math.floor((W - 40) / brickCols) - 6; // leave padding
+  const brickH = 14;
+  const brickPadding = 8;
+  const brickOffsetTop = 36;
+  const brickOffsetLeft = 20;
+
+  let bricks = [];
+  let score = 0;
+  let gameOver = false;
+  let gameWon = false;
+
+  // Input
+  let moveLeft = false;
+  let moveRight = false;
+
+  // Build bricks matrix
+  function setupBricks(){
+    bricks = [];
+    for(let r=0;r<brickRows;r++){
+      for(let c=0;c<brickCols;c++){
+        const x = brickOffsetLeft + c * (brickW + brickPadding);
+        const y = brickOffsetTop + r * (brickH + brickPadding);
+        bricks.push({x,y,w:brickW,h:brickH,alive:true});
+      }
+    }
+  }
+
+  function resetGame(){
+    paddle.w = Math.max(60, Math.min(120, Math.round(W*0.22)));
+    paddle.x = (W - paddle.w)/2;
+    paddle.y = H - 50;
+    ball.r = 7;
+    ball.x = W/2;
+    ball.y = paddle.y - 10;
+    ball.vx = 0;
+    ball.vy = 0;
+    ball.speed = 4;
+    ball.stuck = true;
+    score = 0;
+    gameOver = false;
+    gameWon = false;
+    setupBricks();
+    updateScore();
+  }
+
+  function updateScore(){
+    scoreEl.textContent = 'Score: ' + score;
+  }
+
+  // Draw functions
+  function drawRoundedRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function draw(){
+    // Clear canvas with transparent panel color (we already have white wrap)
+    ctx.clearRect(0,0,W,H);
+
+    // Draw bricks
+    bricks.forEach(b=>{
+      if(!b.alive) return;
+      ctx.fillStyle = '#ff8a00';
+      drawRoundedRect(b.x, b.y, b.w, b.h, 4);
+    });
+
+    // Draw ball
+    ctx.beginPath();
+    ctx.fillStyle = '#ff2b8a';
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+    ctx.fill();
+
+    // Draw paddle
+    ctx.fillStyle = '#2b3db8';
+    drawRoundedRect(paddle.x, paddle.y, paddle.w, paddle.h, 6);
+
+    // If game over or won show small overlay text
+    if(gameOver || gameWon){
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillRect(0, H/2 - 40, W, 80);
+      ctx.fillStyle = '#fff';
+      ctx.font = '18px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(gameWon ? 'You Win! Tap to play again' : 'Game Over! Tap to retry', W/2, H/2+6);
+    }
+    // If ball stuck prompt
+    if(ball.stuck && !gameOver && !gameWon){
+      ctx.fillStyle = 'rgba(0,0,0,0.08)';
+      ctx.fillRect(0, 0, W, 32);
+      ctx.fillStyle = '#111';
+      ctx.font = '14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Tap canvas to launch', W/2, 20);
+    }
+  }
+
+  // Collision helpers
+  function rectCircleColliding(cx, cy, r, rx, ry, rw, rh){
+    // Find closest point to circle within the rectangle
+    let closestX = Math.max(rx, Math.min(cx, rx+rw));
+    let closestY = Math.max(ry, Math.min(cy, ry+rh));
+    // Calculate distance between circle's center and this closest point
+    let dx = cx - closestX;
+    let dy = cy - closestY;
+    return (dx*dx + dy*dy) < (r*r);
+  }
+
+  function update(){
+    if(gameOver || gameWon) return;
+
+    // Paddle movement
+    if(moveLeft) paddle.x -= paddle.speed;
+    if(moveRight) paddle.x += paddle.speed;
+    // Constrain
+    if(paddle.x < 6) paddle.x = 6;
+    if(paddle.x + paddle.w > W - 6) paddle.x = W - paddle.w - 6;
+
+    // Ball follows paddle when stuck
+    if(ball.stuck){
+      ball.x = paddle.x + paddle.w/2;
+      ball.y = paddle.y - ball.r - 2;
+    } else {
+      // Move ball
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+
+      // walls
+      if(ball.x - ball.r <= 0){
+        ball.x = ball.r + 1;
+        ball.vx *= -1;
+      }
+      if(ball.x + ball.r >= W){
+        ball.x = W - ball.r - 1;
+        ball.vx *= -1;
+      }
+      if(ball.y - ball.r <= 0){
+        ball.y = ball.r + 1;
+        ball.vy *= -1;
+      }
+
+      // Paddle collision
+      if(rectCircleColliding(ball.x,ball.y,ball.r, paddle.x, paddle.y, paddle.w, paddle.h)){
+        // place ball above paddle
+        ball.y = paddle.y - ball.r - 1;
+        // reflect and adjust based on where it hit
+        let hitPos = (ball.x - (paddle.x + paddle.w/2)) / (paddle.w/2); // -1 .. 1
+        let angle = hitPos * (Math.PI/3); // max 60 degrees
+        const speed = Math.min(7, Math.sqrt(ball.vx*ball.vx+ball.vy*ball.vy) + 0.1);
+        ball.vx = speed * Math.sin(angle);
+        ball.vy = -Math.abs(speed * Math.cos(angle));
+      }
+
+      // Bottom (miss)
+      if(ball.y - ball.r > H){
+        gameOver = true;
+      }
+
+      // Brick collisions
+      for(let i=0;i<bricks.length;i++){
+        const b = bricks[i];
+        if(!b.alive) continue;
+        if(rectCircleColliding(ball.x,ball.y,ball.r, b.x, b.y, b.w, b.h)){
+          // Simple reflect: prefer vertical reflection if impact mostly vertical
+          // compute center differences
+          const prevX = ball.x - ball.vx;
+          const prevY = ball.y - ball.vy;
+          // Determine side hit
+          let collidedVert = (prevY < b.y || prevY > b.y + b.h);
+          if(collidedVert) ball.vy *= -1;
+          else ball.vx *= -1;
+
+          b.alive = false;
+          score += 1;
+          updateScore();
+          // Slight speed increase
+          const sp = Math.min(8.2, Math.sqrt(ball.vx*ball.vx+ball.vy*ball.vy) + 0.08);
+          const angle = Math.atan2(ball.vy, ball.vx);
+          ball.vx = sp * Math.cos(angle);
+          ball.vy = sp * Math.sin(angle);
+          break;
+        }
+      }
+
+      // Check win
+      const anyAlive = bricks.some(b=>b.alive);
+      if(!anyAlive){
+        gameWon = true;
+      }
+    }
+  }
+
+  // Game loop
+  function loop(){
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // Launch ball
+  function launchBall(){
+    if(gameOver || gameWon){
+      resetGame();
+      return;
+    }
+    if(ball.stuck){
+      // start with an upward angle
+      const angle = (Math.random()*0.6 - 0.3); // small horizontal variation
+      const speed = ball.speed;
+      ball.vx = speed * Math.sin(angle);
+      ball.vy = -Math.abs(speed * Math.cos(angle));
+      ball.stuck = false;
+    }
+  }
+
+  // Input handlers: keyboard
+  window.addEventListener('keydown', (e)=>{
+    if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A'){ moveLeft = true; }
+    if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D'){ moveRight = true; }
+    if(e.key === ' ' || e.key === 'Enter'){ launchBall(); }
+  });
+  window.addEventListener('keyup', (e)=>{
+    if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A'){ moveLeft = false; }
+    if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D'){ moveRight = false; }
+  });
+
+  // Touch / button controls
+  leftBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); moveLeft = true; });
+  leftBtn.addEventListener('mousedown', ()=> moveLeft = true);
+  leftBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); moveLeft = false; });
+  leftBtn.addEventListener('mouseup', ()=> moveLeft = false);
+  leftBtn.addEventListener('mouseleave', ()=> moveLeft = false);
+
+  rightBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); moveRight = true; });
+  rightBtn.addEventListener('mousedown', ()=> moveRight = true);
+  rightBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); moveRight = false; });
+  rightBtn.addEventListener('mouseup', ()=> moveRight = false);
+  rightBtn.addEventListener('mouseleave', ()=> moveRight = false);
+
+  // Canvas click/tap to launch or restart
+  canvas.addEventListener('click', (e)=> {
+    launchBall();
+  });
+  canvas.addEventListener('touchstart', (e)=> {
+    e.preventDefault();
+    launchBall();
+  });
+
+  // Make canvas friendly to different device pixel ratio
+  function resizeCanvasForDPR(){
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    // keep logical size but scale internal pixels
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  // initial setup
+  resetGame();
+  resizeCanvasForDPR();
+  window.addEventListener('resize', resizeCanvasForDPR);
+
+  // start loop
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

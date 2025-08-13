@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Placement Awareness Portal</title>
+  <meta name="description" content="A modern, single-file website for student placement awareness with login, personalized dashboard, resources, events, and prep checklist." />
+
+  <!-- TailwindCSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          },
+          boxShadow: {
+            glow: '0 0 0 3px rgb(59 130 246 / 0.35)'
+          },
+          backgroundImage: {
+            hero: 'radial-gradient(80% 80% at 50% 20%, rgba(59,130,246,0.25) 0%, rgba(59,130,246,0) 60%), radial-gradient(80% 80% at 80% 20%, rgba(168,85,247,0.25) 0%, rgba(168,85,247,0) 60%)'
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* Smooth scroll */
+    html { scroll-behavior: smooth; }
+    /* Glass card */
+    .glass { background: rgba(255,255,255,0.07); backdrop-filter: blur(12px); }
+    /* Hide number input arrows (for quiz) */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-display">
+  <!-- Navbar -->
+  <header class="sticky top-0 z-40 bg-slate-950/70 backdrop-blur border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-500 to-fuchsia-500 shadow-glow">
+          <i data-lucide="graduation-cap" class="w-5 h-5 text-white"></i>
+        </span>
+        <span class="text-lg sm:text-xl font-bold tracking-tight">Placement<span class="text-blue-400">Ready</span></span>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a href="#tracks" class="hover:text-blue-300">Prep Tracks</a>
+        <a href="#opportunities" class="hover:text-blue-300">Opportunities</a>
+        <a href="#events" class="hover:text-blue-300">Events</a>
+        <a href="#resources" class="hover:text-blue-300">Resources</a>
+        <a href="#checklist" class="hover:text-blue-300">Checklist</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <button id="themeToggle" class="p-2 rounded-xl hover:bg-white/5" title="Toggle theme">
+          <i data-lucide="sun" class="h-5 w-5"></i>
+        </button>
+        <button id="loginBtn" class="rounded-xl bg-gradient-to-r from-blue-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold shadow-glow hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-blue-400">Login</button>
+        <div id="userMenu" class="hidden relative">
+          <button id="userMenuBtn" class="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/5">
+            <span id="userGreeting" class="text-sm font-medium">Hi!</span>
+            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+          </button>
+          <div class="absolute right-0 mt-2 w-48 glass rounded-2xl border border-white/10 p-2 hidden" id="userDropdown">
+            <button id="logoutBtn" class="w-full text-left px-3 py-2 rounded-xl hover:bg-white/10 text-sm">Logout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="relative bg-hero">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+      <div class="grid md:grid-cols-2 gap-10 items-center">
+        <div>
+          <span class="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-blue-300/80">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> Career Prep, Simplified
+          </span>
+          <h1 class="mt-3 text-4xl sm:text-5xl font-extrabold leading-tight">
+            Get <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-fuchsia-400">Placement-Ready</span> with the right roadmap
+          </h1>
+          <p class="mt-4 text-slate-300 max-w-xl">Track your progress, learn what companies expect, practice the essentials, and discover opportunities—all in one student-friendly space.</p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <a href="#checklist" class="px-5 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-200">Assess Readiness</a>
+            <a href="#opportunities" class="px-5 py-3 rounded-xl bg-slate-800 border border-white/10 hover:bg-slate-700">Explore Jobs & Internships</a>
+          </div>
+          <div class="mt-6 flex items-center gap-4 text-xs text-slate-400">
+            <div class="flex items-center gap-1"><i data-lucide="shield-check" class="w-4 h-4"></i> No data leaves your device</div>
+            <div class="flex items-center gap-1"><i data-lucide="zap" class="w-4 h-4"></i> Fast & lightweight</div>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="glass rounded-3xl p-6 border border-white/10">
+            <div class="grid grid-cols-3 gap-3">
+              <div class="col-span-2 glass rounded-2xl p-4 border border-white/10">
+                <div class="text-xs text-slate-300 mb-2">Mock Interview Score</div>
+                <div class="text-4xl font-extrabold">78<span class="text-lg align-top">/100</span></div>
+                <div class="mt-3 w-full h-2 rounded-full bg-slate-800">
+                  <div class="h-2 rounded-full bg-gradient-to-r from-blue-500 to-fuchsia-500" style="width:78%"></div>
+                </div>
+              </div>
+              <div class="glass rounded-2xl p-4 border border-white/10 text-center">
+                <div class="text-xs text-slate-300">Coding Streak</div>
+                <div class="text-3xl font-extrabold">12</div>
+                <div class="text-xs text-slate-400">days</div>
+              </div>
+              <div class="glass rounded-2xl p-4 border border-white/10 text-center">
+                <div class="text-xs text-slate-300">Aptitude</div>
+                <div class="text-3xl font-extrabold">B+</div>
+                <div class="text-xs text-slate-400">good</div>
+              </div>
+              <div class="col-span-2 glass rounded-2xl p-4 border border-white/10">
+                <div class="text-xs text-slate-300 mb-1">Next Step</div>
+                <div class="text-sm">Finish DS & Algo practice set 3</div>
+                <a href="#tracks" class="mt-2 inline-flex items-center gap-1 text-blue-300 hover:underline text-xs">Go to Prep Tracks <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Prep Tracks -->
+  <section id="tracks" class="py-14 sm:py-20 border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl sm:text-3xl font-bold">Preparation Tracks</h2>
+        <div class="flex items-center gap-2">
+          <button class="tab-btn px-4 py-2 text-sm rounded-xl bg-white text-slate-900 font-semibold" data-track="coding">Coding</button>
+          <button class="tab-btn px-4 py-2 text-sm rounded-xl bg-slate-800 border border-white/10" data-track="aptitude">Aptitude</button>
+          <button class="tab-btn px-4 py-2 text-sm rounded-xl bg-slate-800 border border-white/10" data-track="communication">Communication</button>
+        </div>
+      </div>
+      <div id="trackContent" class="grid md:grid-cols-3 gap-5"></div>
+    </div>
+  </section>
+
+  <!-- Opportunities -->
+  <section id="opportunities" class="py-14 sm:py-20 border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl sm:text-3xl font-bold">Opportunities</h2>
+        <div class="flex flex-wrap gap-3">
+          <select id="roleFilter" class="bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm">
+            <option value="all">All Roles</option>
+            <option>Software Developer</option>
+            <option>Data Analyst</option>
+            <option>UI/UX</option>
+            <option>QA/Testing</option>
+          </select>
+          <input id="searchInput" type="text" placeholder="Search company or skill..." class="bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm w-52">
+        </div>
+      </div>
+      <div id="jobsGrid" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
+    </div>
+  </section>
+
+  <!-- Events -->
+  <section id="events" class="py-14 sm:py-20 border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl sm:text-3xl font-bold mb-6">Upcoming Events</h2>
+      <div id="timeline" class="relative">
+        <!-- timeline line -->
+        <div class="absolute left-4 sm:left-1/2 sm:-translate-x-1/2 top-0 bottom-0 w-1 bg-slate-800 rounded"></div>
+        <div id="eventsList" class="space-y-6"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section id="resources" class="py-14 sm:py-20 border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl sm:text-3xl font-bold">Placement Resources</h2>
+        <a href="#" class="text-sm text-blue-300 hover:underline">View all</a>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" id="resourcesGrid"></div>
+      <details class="mt-6 glass rounded-2xl border border-white/10 p-4">
+        <summary class="cursor-pointer text-sm font-semibold">FAQs</summary>
+        <div class="mt-3 space-y-2 text-sm text-slate-300">
+          <p><span class="font-semibold">Q:</span> How do I start coding prep? <br><span class="font-semibold">A:</span> Pick a language (C++/Java/Python), learn DS & Algorithms basics, and solve 2–3 problems daily.</p>
+          <p><span class="font-semibold">Q:</span> What to include in resume? <br><span class="font-semibold">A:</span> 1 page. Projects, skills, education, achievements. Keep it truthful and quantifiable.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- Checklist -->
+  <section id="checklist" class="py-14 sm:py-20 border-t border-white/10">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl sm:text-3xl font-bold mb-6">Placement Readiness Checklist</h2>
+      <div class="glass rounded-3xl border border-white/10 p-5">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div class="text-sm text-slate-300">Your readiness score</div>
+            <div class="text-3xl font-extrabold" id="readinessScore">0%</div>
+          </div>
+          <div class="flex-1">
+            <div class="w-full h-2 rounded-full bg-slate-800">
+              <div id="readinessBar" class="h-2 rounded-full bg-gradient-to-r from-blue-500 to-fuchsia-500" style="width:0%"></div>
+            </div>
+          </div>
+          <button id="resetChecklist" class="px-4 py-2 rounded-xl bg-slate-800 border border-white/10 text-sm">Reset</button>
+        </div>
+        <div class="mt-5 grid sm:grid-cols-2 gap-3" id="checklistGrid"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="border-t border-white/10 py-10 text-center text-sm text-slate-400">
+    <div class="max-w-7xl mx-auto px-4">Made with ❤️ for students. <span class="px-2">•</span> <a href="#" class="hover:underline">Privacy</a> <span class="px-2">•</span> <a href="#" class="hover:underline">Contact</a></div>
+  </footer>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/60"></div>
+    <div class="relative max-w-md mx-auto mt-24 glass rounded-3xl border border-white/10 p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-bold">Welcome back</h3>
+        <button class="p-2 rounded-xl hover:bg-white/10" id="closeLogin"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <p class="text-sm text-slate-300 mb-4">Login to personalize your dashboard.</p>
+      <form id="loginForm" class="space-y-3">
+        <div>
+          <label class="text-sm">Username</label>
+          <input id="usernameInput" required class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2" placeholder="e.g., Vikram" />
+        </div>
+        <div>
+          <label class="text-sm">Password</label>
+          <input id="passwordInput" type="password" required class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2" placeholder="••••••••" />
+        </div>
+        <button class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-fuchsia-600 px-4 py-2 font-semibold shadow-glow">Login</button>
+        <p class="text-xs text-slate-400 text-center">Tip: This is a demo login—no server required. Data is saved to your browser only.</p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ---------- DATA ----------
+    const TRACKS = {
+      coding: [
+        { title: 'Data Structures Basics', time: '2 weeks', items: ['Arrays & Strings', 'Stacks & Queues', 'Linked Lists'] },
+        { title: 'Algorithms Starter', time: '2 weeks', items: ['Sorting & Searching', 'Two Pointers', 'Hashing'] },
+        { title: 'Interview Patterns', time: '3 weeks', items: ['Sliding Window', 'Greedy', 'Recursion & DP'] }
+      ],
+      aptitude: [
+        { title: 'Quant Foundation', time: '10 days', items: ['Ratios & Percentages', 'Speed–Time–Distance', 'Simple & Compound Interest'] },
+        { title: 'Logical Reasoning', time: '7 days', items: ['Syllogisms', 'Blood Relations', 'Directions'] },
+        { title: 'Practice Sets', time: 'Ongoing', items: ['30 mins daily', 'Timed quizzes', 'Error log'] }
+      ],
+      communication: [
+        { title: 'Resume & Email', time: '3 days', items: ['One-page resume', 'Cover letter basics', 'HR email etiquette'] },
+        { title: 'Group Discussion', time: '5 days', items: ['Structures', 'Examples', 'Do/Don’t list'] },
+        { title: 'HR Interview', time: '5 days', items: ['STAR stories', 'Strengths & Weaknesses', 'Salary basics'] }
+      ]
+    }
+
+    const JOBS = [
+      { role: 'Software Developer', company: 'TechNova', skills: ['JavaScript','React','API'], type: 'Internship', applyBy: '2025-08-30' },
+      { role: 'Data Analyst', company: 'InsightIQ', skills: ['SQL','Excel','Python'], type: 'Full-time', applyBy: '2025-09-05' },
+      { role: 'UI/UX', company: 'PixelWorks', skills: ['Figma','UX Research','Prototyping'], type: 'Internship', applyBy: '2025-08-25' },
+      { role: 'QA/Testing', company: 'QualityHub', skills: ['Selenium','JUnit','CI/CD'], type: 'Full-time', applyBy: '2025-09-10' },
+      { role: 'Software Developer', company: 'CloudNine', skills: ['Java','Spring','Docker'], type: 'Full-time', applyBy: '2025-09-15' },
+      { role: 'Data Analyst', company: 'DataWave', skills: ['PowerBI','SQL','R'], type: 'Internship', applyBy: '2025-08-28' }
+    ]
+
+    const EVENTS = [
+      { date: '2025-08-20', title: 'Aptitude Bootcamp', desc: 'Brush up quant and logic with timed sessions.' },
+      { date: '2025-08-27', title: 'Resume Clinic', desc: 'One-on-one review to polish your resume.' },
+      { date: '2025-09-03', title: 'Mock Interviews', desc: 'Technical + HR mock rounds with feedback.' },
+      { date: '2025-09-12', title: 'Company Talk: CloudNine', desc: 'Meet engineers and learn hiring expectations.' }
+    ]
+
+    const RESOURCES = [
+      { tag: 'Guide', title: 'Crack the Coding Interview – Roadmap', size: 'PDF • 1.2 MB' },
+      { tag: 'Template', title: 'One-Page Resume (ATS-friendly)', size: 'DOCX • 48 KB' },
+      { tag: 'Checklist', title: 'Interview Day Essentials', size: 'PDF • 220 KB' },
+      { tag: 'Sheet', title: 'Aptitude Formula Sheet', size: 'PNG • 300 KB' },
+      { tag: 'Video', title: 'Top 10 HR Questions', size: 'MP4 • 10 min' },
+      { tag: 'Practice', title: 'SQL 50 – Practice Set', size: 'WEB' }
+    ]
+
+    const CHECKS = [
+      'Resume is one page and updated',
+      'GitHub has 2+ solid projects',
+      'Solved 100+ DSA problems',
+      'I can explain 3 STAR stories',
+      'I practice aptitude daily (20 mins)',
+      'I can explain my last project clearly',
+      'I prepared HR answers (Why you?, Goals)',
+      'I know basics of OOPs/DBMS/OS/Networks',
+      'I have a neat LinkedIn profile',
+      'I researched 3 target companies'
+    ]
+
+    // ---------- HELPERS ----------
+    const $ = (sel, root=document) => root.querySelector(sel)
+    const $$ = (sel, root=document) => [...root.querySelectorAll(sel)]
+
+    function renderTracks(active='coding') {
+      $$('#tracks .tab-btn').forEach(btn => {
+        btn.classList.toggle('bg-white', btn.dataset.track === active)
+        btn.classList.toggle('text-slate-900', btn.dataset.track === active)
+        btn.classList.toggle('bg-slate-800', btn.dataset.track !== active)
+        btn.classList.toggle('text-slate-100', btn.dataset.track !== active)
+      })
+      const wrap = $('#trackContent');
+      wrap.innerHTML = ''
+      TRACKS[active].forEach(card => {
+        const el = document.createElement('div')
+        el.className = 'glass rounded-2xl p-5 border border-white/10 hover:border-white/20 transition'
+        el.innerHTML = `
+          <div class="text-sm text-blue-300 mb-2">${card.time}</div>
+          <h3 class="font-semibold mb-2">${card.title}</h3>
+          <ul class="list-disc list-inside text-sm text-slate-300 space-y-1">
+            ${card.items.map(i => `<li>${i}</li>`).join('')}
+          </ul>
+        `
+        wrap.appendChild(el)
+      })
+    }
+
+    function renderJobs() {
+      const role = $('#roleFilter').value
+      const q = $('#searchInput').value.toLowerCase()
+      const grid = $('#jobsGrid')
+      grid.innerHTML = ''
+      const filtered = JOBS.filter(j => (role === 'all' || j.role === role) &&
+        (j.company.toLowerCase().includes(q) || j.skills.join(' ').toLowerCase().includes(q)))
+      filtered.forEach(j => {
+        const el = document.createElement('div')
+        el.className = 'glass rounded-2xl p-5 border border-white/10 hover:border-white/20 transition flex flex-col'
+        el.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="text-xs text-blue-300">${j.type}</div>
+              <h3 class="font-semibold text-lg">${j.role}</h3>
+              <div class="text-sm text-slate-300">@ ${j.company}</div>
+            </div>
+            <div class="text-xs text-slate-400">Apply by <span class="font-semibold">${new Date(j.applyBy).toLocaleDateString()}</span></div>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2">
+            ${j.skills.map(s => `<span class='px-2 py-1 rounded-lg bg-slate-800 border border-white/10 text-xs'>${s}</span>`).join('')}
+          </div>
+          <button class="mt-4 rounded-xl px-4 py-2 bg-gradient-to-r from-blue-600 to-fuchsia-600 font-semibold shadow-glow">Apply</button>
+        `
+        grid.appendChild(el)
+      })
+      if (!filtered.length) {
+        grid.innerHTML = `<div class='text-slate-400'>No results. Try a different role or search term.</div>`
+      }
+    }
+
+    function renderEvents() {
+      const list = $('#eventsList')
+      list.innerHTML = ''
+      EVENTS.forEach((e, idx) => {
+        const side = idx % 2 === 0 ? 'sm:pr-10 sm:text-right' : 'sm:pl-10'
+        const dotPos = idx % 2 === 0 ? 'sm:right-1/2 sm:translate-x-1/2' : 'sm:left-1/2 sm:-translate-x-1/2'
+        const el = document.createElement('div')
+        el.className = `relative grid grid-cols-[2rem,1fr] sm:grid-cols-2 gap-3 items-start`
+        el.innerHTML = `
+          <div class="relative h-full">
+            <div class="absolute top-2 left-3 ${dotPos} w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-fuchsia-500 border border-white/20"></div>
+          </div>
+          <div class="${side}">
+            <div class="text-xs text-slate-400">${new Date(e.date).toDateString()}</div>
+            <div class="font-semibold">${e.title}</div>
+            <div class="text-sm text-slate-300">${e.desc}</div>
+          </div>
+        `
+        list.appendChild(el)
+      })
+    }
+
+    function renderResources() {
+      const grid = $('#resourcesGrid')
+      grid.innerHTML = ''
+      RESOURCES.forEach(r => {
+        const el = document.createElement('div')
+        el.className = 'glass rounded-2xl p-5 border border-white/10 flex items-start justify-between gap-3 hover:border-white/20 transition'
+        el.innerHTML = `
+          <div>
+            <div class="text-xs text-blue-300">${r.tag}</div>
+            <div class="font-semibold">${r.title}</div>
+            <div class="text-xs text-slate-400">${r.size}</div>
+          </div>
+          <button class="px-3 py-2 rounded-xl bg-slate-800 border border-white/10 text-sm">Open</button>
+        `
+        grid.appendChild(el)
+      })
+    }
+
+    function renderChecklist() {
+      const grid = $('#checklistGrid')
+      grid.innerHTML = ''
+      CHECKS.forEach((c, i) => {
+        const id = `chk-${i}`
+        const el = document.createElement('label')
+        el.className = 'flex items-start gap-3 p-3 rounded-2xl hover:bg-white/5 cursor-pointer border border-white/10'
+        el.innerHTML = `
+          <input id='${id}' type='checkbox' class='mt-1 accent-blue-600 h-4 w-4 rounded'>
+          <span class='text-sm'>${c}</span>
+        `
+        grid.appendChild(el)
+      })
+      // Restore from localStorage
+      const saved = JSON.parse(localStorage.getItem('checklist') || '[]')
+      saved.forEach(i => {
+        const box = document.getElementById(`chk-${i}`)
+        if (box) box.checked = true
+      })
+      updateReadiness()
+      $$('#checklistGrid input[type=checkbox]').forEach((box, i) => box.addEventListener('change', () => {
+        const sel = $$('#checklistGrid input[type=checkbox]').map((b, idx) => b.checked ? idx : null).filter(v => v !== null)
+        localStorage.setItem('checklist', JSON.stringify(sel))
+        updateReadiness()
+      }))
+      $('#resetChecklist').addEventListener('click', () => {
+        localStorage.removeItem('checklist')
+        renderChecklist()
+      })
+    }
+
+    function updateReadiness() {
+      const total = CHECKS.length
+      const done = $$('#checklistGrid input[type=checkbox]').filter(b => b.checked).length
+      const pct = Math.round((done/total)*100)
+      $('#readinessScore').textContent = pct + '%'
+      $('#readinessBar').style.width = pct + '%'
+    }
+
+    // ---------- LOGIN ----------
+    function openLogin() { $('#loginModal').classList.remove('hidden'); $('#usernameInput').focus() }
+    function closeLogin() { $('#loginModal').classList.add('hidden') }
+
+    function showUser(name) {
+      $('#loginBtn').classList.add('hidden')
+      $('#userMenu').classList.remove('hidden')
+      $('#userGreeting').textContent = `Hi, ${name}`
+    }
+    function hideUser() {
+      $('#userMenu').classList.add('hidden')
+      $('#loginBtn').classList.remove('hidden')
+    }
+
+    function initLogin() {
+      const saved = localStorage.getItem('username')
+      if (saved) showUser(saved)
+      else hideUser()
+
+      $('#loginBtn').addEventListener('click', openLogin)
+      $('#closeLogin').addEventListener('click', closeLogin)
+      $('#loginForm').addEventListener('submit', (e) => {
+        e.preventDefault()
+        const name = $('#usernameInput').value.trim()
+        const pwd = $('#passwordInput').value.trim()
+        if (!name || !pwd) return
+        // Demo validation: accept any non-empty
+        localStorage.setItem('username', name)
+        showUser(name)
+        closeLogin()
+      })
+      $('#userMenuBtn').addEventListener('click', () => $('#userDropdown').classList.toggle('hidden'))
+      $('#logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('username')
+        hideUser()
+      })
+    }
+
+    // ---------- THEME TOGGLE (light/dark accent) ----------
+    function initTheme() {
+      const btn = $('#themeToggle')
+      let mode = localStorage.getItem('theme') || 'dark'
+      applyTheme(mode)
+      btn.addEventListener('click', () => {
+        mode = (mode === 'dark') ? 'light' : 'dark'
+        localStorage.setItem('theme', mode)
+        applyTheme(mode)
+      })
+    }
+
+    function applyTheme(mode) {
+      document.body.classList.toggle('bg-slate-50', mode === 'light')
+      document.body.classList.toggle('text-slate-900', mode === 'light')
+      document.body.classList.toggle('bg-slate-950', mode !== 'light')
+      document.body.classList.toggle('text-slate-100', mode !== 'light')
+    }
+
+    // ---------- INIT ----------
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons()
+      renderTracks('coding')
+      renderJobs()
+      renderEvents()
+      renderResources()
+      renderChecklist()
+      initLogin()
+      initTheme()
+
+      // Listeners
+      $$('#tracks .tab-btn').forEach(btn => btn.addEventListener('click', () => renderTracks(btn.dataset.track)))
+      $('#roleFilter').addEventListener('change', renderJobs)
+      $('#searchInput').addEventListener('input', renderJobs)
+
+      // Close dropdown on outside click
+      document.addEventListener('click', (e) => {
+        if (!$('#userMenu').contains(e.target)) $('#userDropdown').classList.add('hidden')
+      })
+    })
+  </script>
+</body>
+</html>
